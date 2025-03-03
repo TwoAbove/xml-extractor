@@ -11,7 +11,7 @@
     "build": "tsc",
     "ci": "npm run build && npm test",
     "prepublishOnly": "npm run ci",
-    "local-release": "changeset version && changeset publish",
+    "local-release": "npx @changesets/cli version && npx @changesets/cli publish",
     "test": "vitest"
   },
   "dependencies": {
@@ -19,7 +19,6 @@
     "vitest": "^3.0.7"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.28.1",
     "typescript": "^5.8.2"
   },
   "author": "Seva Maltsev <me@seva.dev>",
