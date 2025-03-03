@@ -1,6 +1,6 @@
 src/
-tests/
 *.ts
+*.test.js
 tsconfig.json
 jest.config.js
 node_modules/
