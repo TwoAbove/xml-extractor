@@ -20,7 +20,7 @@
   "devDependencies": {
     "typescript": "^5.8.2"
   },
-  "author": "Seva Maltsev <me@seva.dev>",
+  "author": "Seva Maltsev <me@seva.dev> (https://github.com/TwoAbove",
   "license": "MIT",
   "keywords": [
     "xml",
