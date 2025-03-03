@@ -1,0 +1,41 @@
+{
+  "name": "xml-extractor",
+  "version": "1.0.0",
+  "description": "A lightweight library to extract and parse all XML blocks from a string",
+  "main": "dist/xml-extractor.js",
+  "types": "dist/xml-extractor.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run ci && npm run build",
+    "local-release": "changeset version && changeset publish",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.0.8",
+    "vitest": "^3.0.7"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.28.1",
+    "typescript": "^5.8.2"
+  },
+  "author": "Seva Maltsev <me@seva.dev>",
+  "license": "MIT",
+  "keywords": [
+    "xml",
+    "extractor",
+    "parser",
+    "typescript",
+    "node"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TwoAbove/xml-extractor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TwoAbove/xml-extractor/issues"
+  },
+  "homepage": "https://github.com/TwoAbove/xml-extractor#readme"
+}
