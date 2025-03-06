@@ -11,13 +11,15 @@
     "ci": "npm run build && npm test --watch=false",
     "prepublishOnly": "npm run ci",
     "local-release": "npx @changesets/cli version && npx @changesets/cli publish",
-    "test": "vitest --watch=false"
+    "test": "vitest --watch=false",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "fast-xml-parser": "^5.0.8",
     "vitest": "^3.0.7"
   },
   "devDependencies": {
+    "prettier": "^3.5.3",
     "typescript": "^5.8.2"
   },
   "author": "Seva Maltsev <me@seva.dev> (https://github.com/TwoAbove",

@@ -1,5 +1,5 @@
-import { XMLParser } from "fast-xml-parser";
-import type { X2jOptions } from "fast-xml-parser";
+import { XMLParser } from 'fast-xml-parser';
+import type { X2jOptions } from 'fast-xml-parser';
 
 type ParsedXMLObject = Record<string, any>;
 type XMLValue = ParsedXMLObject | string | number | boolean | null;
@@ -21,34 +21,34 @@ interface ExtractionError {
  */
 export async function extractXMLObjects(
   input: string,
-  options?: Partial<X2jOptions>
+  options?: Partial<X2jOptions>,
 ): Promise<ParsedXMLObject[]> {
-  if (!input || typeof input !== "string") {
-    throw new Error("Input must be a non-empty string");
+  if (!input || typeof input !== 'string') {
+    throw new Error('Input must be a non-empty string');
   }
 
   const xmlStrings: string[] = [];
 
   // Step 1: Extract XML from ```xml ... ``` code blocks using line-by-line parsing
-  const lines = input.split("\n");
+  const lines = input.split('\n');
   let inBlock = false;
   let currentBlock: string[] = [];
 
   for (const line of lines) {
     const trimmedLine = line.trim();
-    if (trimmedLine.startsWith("```xml")) {
+    if (trimmedLine.startsWith('```xml')) {
       // If we're already in a block, save it before starting new one
       if (inBlock && currentBlock.length > 0) {
-        const blockContent = currentBlock.join("\n").trim();
+        const blockContent = currentBlock.join('\n').trim();
         if (blockContent) {
           xmlStrings.push(blockContent);
         }
       }
       inBlock = true;
       currentBlock = [];
-    } else if (line.trim() === "```" && inBlock) {
+    } else if (line.trim() === '```' && inBlock) {
       inBlock = false;
-      const blockContent = currentBlock.join("\n").trim();
+      const blockContent = currentBlock.join('\n').trim();
       if (blockContent) {
         xmlStrings.push(blockContent);
       }
@@ -60,7 +60,7 @@ export async function extractXMLObjects(
 
   // Handle unclosed blocks by including content
   if (inBlock && currentBlock.length > 0) {
-    const blockContent = currentBlock.join("\n").trim();
+    const blockContent = currentBlock.join('\n').trim();
     if (blockContent) {
       xmlStrings.push(blockContent);
     }
@@ -69,17 +69,17 @@ export async function extractXMLObjects(
   // Step 2: Always look for raw XML tags as well
   // Build a clean input by removing all content between ```xml markers (even unclosed ones)
   let cleanInBlock = false;
-  const cleanInput = input.split("\n").reduce((acc, line) => {
+  const cleanInput = input.split('\n').reduce((acc, line) => {
     const trimmedLine = line.trim();
-    if (trimmedLine.startsWith("```xml")) {
+    if (trimmedLine.startsWith('```xml')) {
       cleanInBlock = true;
       return acc;
-    } else if (trimmedLine === "```" && cleanInBlock) {
+    } else if (trimmedLine === '```' && cleanInBlock) {
       cleanInBlock = false;
       return acc;
     }
-    return cleanInBlock ? acc : acc + "\n" + line;
-  }, "");
+    return cleanInBlock ? acc : acc + '\n' + line;
+  }, '');
 
   // This regex matches both complete elements and self-closing tags
   const rawXMLRegex =
@@ -101,14 +101,14 @@ export async function extractXMLObjects(
   const errors: ExtractionError[] = [];
 
   const defaultOptions: Partial<X2jOptions> = {
-    attributeNamePrefix: "@_",
+    attributeNamePrefix: '@_',
     ignoreAttributes: false,
     allowBooleanAttributes: true,
     parseAttributeValue: true,
     trimValues: false, // Don't trim values to preserve spaces
     ignoreDeclaration: true,
     parseTagValue: true,
-    stopNodes: ["#text"],
+    stopNodes: ['#text'],
   };
 
   // Try to parse each XML string
@@ -116,12 +116,12 @@ export async function extractXMLObjects(
     try {
       // Pre-process XML to remove comments and processing instructions
       const cleanXml = xml
-        .replace(/<!--[\s\S]*?-->/g, "") // Remove comments
-        .replace(/<\?[\s\S]*?\?>/g, ""); // Remove processing instructions
+        .replace(/<!--[\s\S]*?-->/g, '') // Remove comments
+        .replace(/<\?[\s\S]*?\?>/g, ''); // Remove processing instructions
 
       // Validate XML structure
       if (!isValidXML(cleanXml)) {
-        throw new Error("Malformed XML structure");
+        throw new Error('Malformed XML structure');
       }
 
       const parsed = parseXML(cleanXml, {
@@ -134,23 +134,23 @@ export async function extractXMLObjects(
 
       if (
         processed &&
-        (typeof processed === "object"
+        (typeof processed === 'object'
           ? Object.keys(processed).length > 0
           : true)
       ) {
         // Ensure we always return an object at the top level
         parsedObjects.push(
-          typeof processed === "object"
+          typeof processed === 'object'
             ? processed
-            : { "#text": processed as string }
+            : { '#text': processed as string },
         );
       } else {
-        throw new Error("Invalid XML structure");
+        throw new Error('Invalid XML structure');
       }
     } catch (error) {
       errors.push({
         message: `Failed to parse XML block: ${
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         }`,
         xmlSnippet: xml.length > 50 ? `${xml.slice(0, 50)}...` : xml,
         cause: error instanceof Error ? error : undefined,
@@ -162,9 +162,9 @@ export async function extractXMLObjects(
     const errorDetails = errors
       .map(
         (err, idx) =>
-          `Error ${idx + 1}: ${err.message} (Snippet: ${err.xmlSnippet})`
+          `Error ${idx + 1}: ${err.message} (Snippet: ${err.xmlSnippet})`,
       )
-      .join("\n");
+      .join('\n');
     throw new Error(`Failed to parse any XML blocks:\n${errorDetails}`);
   }
 
@@ -185,12 +185,12 @@ function isValidXML(xml: string): boolean {
       return false; // Invalid tag format
     }
 
-    if (fullTag.startsWith("</")) {
+    if (fullTag.startsWith('</')) {
       // Closing tag
       if (tagStack.length === 0 || tagStack.pop() !== tagName) {
         return false; // Mismatched or unexpected closing tag
       }
-    } else if (!fullTag.endsWith("/>")) {
+    } else if (!fullTag.endsWith('/>')) {
       // Opening tag (not self-closing)
       tagStack.push(tagName);
     }
@@ -208,7 +208,7 @@ function isValidXML(xml: string): boolean {
  */
 function parseXML(
   xmlString: string,
-  options?: Partial<X2jOptions>
+  options?: Partial<X2jOptions>,
 ): ParsedXMLObject {
   try {
     const parser = new XMLParser(options);
@@ -217,8 +217,8 @@ function parseXML(
   } catch (error) {
     throw new Error(
       `XML parsing failed: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`
+        error instanceof Error ? error.message : 'Unknown error'
+      }`,
     );
   }
 }
@@ -227,7 +227,7 @@ function parseXML(
  * Simplifies the XML structure by handling text nodes and attributes
  */
 function simplifyXMLStructure(obj: Record<string, any>): XMLValue {
-  if (typeof obj !== "object" || obj === null) {
+  if (typeof obj !== 'object' || obj === null) {
     // Convert undefined to null to match XMLValue type
     return obj ?? null;
   }
@@ -238,7 +238,7 @@ function simplifyXMLStructure(obj: Record<string, any>): XMLValue {
       if (item === undefined || item === null) {
         return null;
       }
-      if (typeof item === "object") {
+      if (typeof item === 'object') {
         return simplifyXMLStructure(item);
       }
       // For primitives (string, number, boolean), return as-is
@@ -254,20 +254,20 @@ function simplifyXMLStructure(obj: Record<string, any>): XMLValue {
   // First, process non-attribute properties and collect text nodes
   const texts: string[] = [];
   for (const [key, value] of Object.entries(obj)) {
-    if (key === "#text") {
+    if (key === '#text') {
       // Keep text nodes as separate entries
       const stringValue = Array.isArray(value)
-        ? value.map((v) => (v === undefined || v === null ? "" : String(v)))
+        ? value.map((v) => (v === undefined || v === null ? '' : String(v)))
         : value === undefined || value === null
-        ? ""
-        : String(value);
+          ? ''
+          : String(value);
 
       if (Array.isArray(stringValue)) {
         texts.push(...stringValue);
       } else {
         texts.push(stringValue);
       }
-    } else if (!key.startsWith("@_")) {
+    } else if (!key.startsWith('@_')) {
       const processed = simplifyXMLStructure(value);
       const validValue = processed ?? null; // Convert undefined to null
       result[key] = validValue;
@@ -276,7 +276,7 @@ function simplifyXMLStructure(obj: Record<string, any>): XMLValue {
 
   // Then, add attributes (keep @_ prefix)
   for (const [key, value] of Object.entries(obj)) {
-    if (key.startsWith("@_")) {
+    if (key.startsWith('@_')) {
       const validValue = value ?? null;
       result[key] = validValue;
     }
@@ -290,7 +290,7 @@ function simplifyXMLStructure(obj: Record<string, any>): XMLValue {
       return textResult as string;
     }
     // Otherwise, add text as an array property
-    result["#text"] = texts as string[];
+    result['#text'] = texts as string[];
   }
 
   return result as ParsedXMLObject;

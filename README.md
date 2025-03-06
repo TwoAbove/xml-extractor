@@ -23,7 +23,7 @@ npm install xml-extractor
 Here's a quick example to get you up and running:
 
 ```typescript
-import { extractXMLObjects } from "xml-extractor";
+import { extractXMLObjects } from 'xml-extractor';
 
 const aiResponse = `
 Here’s some XML for you:
@@ -37,17 +37,14 @@ try {
   const xmlObjects = await extractXMLObjects(aiResponse);
   console.log(xmlObjects);
 } catch (error) {
-  console.error("Whoops:", error.message);
+  console.error('Whoops:', error.message);
 }
 ```
 
 The result is clean and immediately usable:
 
 ```json
-[
-  { "person": { "name": "John" } },
-  { "book": { "title": "1984" } }
-]
+[{ "person": { "name": "John" } }, { "book": { "title": "1984" } }]
 ```
 
 Easy, isn't it?
