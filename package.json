@@ -3,23 +3,34 @@
   "version": "1.0.1",
   "description": "A lightweight library to extract and parse all XML blocks from a string",
   "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "tsc",
-    "ci": "npm run build && npm test --watch=false",
+    "ci": "npm run build && npm run check-format && npm test --watch=false",
     "prepublishOnly": "npm run ci",
     "local-release": "npx @changesets/cli version && npx @changesets/cli publish",
     "test": "vitest --watch=false",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "check-format": "prettier --check .",
+    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm"
   },
   "dependencies": {
-    "fast-xml-parser": "^5.0.8",
-    "vitest": "^3.0.7"
+    "fast-xml-parser": "^5.0.8"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.17.4",
     "prettier": "^3.5.3",
+    "vitest": "^3.0.7",
     "typescript": "^5.8.2"
   },
   "author": "Seva Maltsev <me@seva.dev> (https://github.com/TwoAbove",

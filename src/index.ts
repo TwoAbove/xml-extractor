@@ -11,6 +11,131 @@ interface ExtractionError {
 }
 
 /**
+ * Validates XML structure by checking for matching tags and proper nesting
+ */
+function isValidXML(xml: string): boolean {
+  const tagStack: string[] = [];
+  const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9:-]*)[^>]*>/g;
+  let match;
+
+  while ((match = tagRegex.exec(xml))) {
+    const [fullTag, tagName] = match;
+    if (!tagName) {
+      return false; // Invalid tag format
+    }
+
+    if (fullTag.startsWith('</')) {
+      // Closing tag
+      if (tagStack.length === 0 || tagStack.pop() !== tagName) {
+        return false; // Mismatched or unexpected closing tag
+      }
+    } else if (!fullTag.endsWith('/>')) {
+      // Opening tag (not self-closing)
+      tagStack.push(tagName);
+    }
+  }
+
+  return tagStack.length === 0; // All tags should be matched
+}
+
+/**
+ * Parses an XML string into a JavaScript object using fast-xml-parser.
+ * @param xmlString The XML string to parse
+ * @param options Optional parsing options to override defaults
+ * @returns Parsed JavaScript object
+ * @throws Error if parsing fails
+ */
+function parseXML(
+  xmlString: string,
+  options?: Partial<X2jOptions>,
+): ParsedXMLObject {
+  try {
+    const parser = new XMLParser(options);
+    const result = parser.parse(xmlString);
+    return result;
+  } catch (error) {
+    throw new Error(
+      `XML parsing failed: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`,
+    );
+  }
+}
+
+/**
+ * Simplifies the XML structure by handling text nodes and attributes
+ */
+function simplifyXMLStructure(obj: Record<string, any>): XMLValue {
+  if (typeof obj !== 'object' || obj === null) {
+    // Convert undefined to null to match XMLValue type
+    return obj ?? null;
+  }
+
+  if (Array.isArray(obj)) {
+    // Handle nested arrays from the parser
+    const processedArray = obj.map((item): XMLValue => {
+      if (item === undefined || item === null) {
+        return null;
+      }
+      if (typeof item === 'object') {
+        return simplifyXMLStructure(item);
+      }
+      // For primitives (string, number, boolean), return as-is
+      return item as string | number | boolean;
+    });
+    const result =
+      processedArray.length === 1 ? processedArray[0] : processedArray;
+    return result ?? null; // Ensure we never return undefined
+  }
+
+  const result: ParsedXMLObject = {};
+
+  // First, process non-attribute properties and collect text nodes
+  const texts: string[] = [];
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === '#text') {
+      // Keep text nodes as separate entries
+      const stringValue = Array.isArray(value)
+        ? value.map((v) => (v === undefined || v === null ? '' : String(v)))
+        : value === undefined || value === null
+          ? ''
+          : String(value);
+
+      if (Array.isArray(stringValue)) {
+        texts.push(...stringValue);
+      } else {
+        texts.push(stringValue);
+      }
+    } else if (!key.startsWith('@_')) {
+      const processed = simplifyXMLStructure(value);
+      const validValue = processed ?? null; // Convert undefined to null
+      result[key] = validValue;
+    }
+  }
+
+  // Then, add attributes (keep @_ prefix)
+  for (const [key, value] of Object.entries(obj)) {
+    if (key.startsWith('@_')) {
+      const validValue = value ?? null;
+      result[key] = validValue;
+    }
+  }
+
+  // Handle text content
+  if (texts.length > 0) {
+    if (Object.keys(result).length === 0) {
+      // If this is a leaf node with only text content, return the text
+      const textResult = texts.length === 1 ? texts[0] : texts;
+      return textResult as string;
+    }
+    // Otherwise, add text as an array property
+    result['#text'] = texts as string[];
+  }
+
+  return result as ParsedXMLObject;
+}
+
+/**
  * Extracts and parses all XML blocks from a string.
  * First looks for ```xml ... ``` code blocks, then checks for raw XML tags.
  * Returns an array of parsed JavaScript objects.
@@ -169,131 +294,6 @@ export async function extractXMLObjects(
   }
 
   return parsedObjects;
-}
-
-/**
- * Validates XML structure by checking for matching tags and proper nesting
- */
-function isValidXML(xml: string): boolean {
-  const tagStack: string[] = [];
-  const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9:-]*)[^>]*>/g;
-  let match;
-
-  while ((match = tagRegex.exec(xml))) {
-    const [fullTag, tagName] = match;
-    if (!tagName) {
-      return false; // Invalid tag format
-    }
-
-    if (fullTag.startsWith('</')) {
-      // Closing tag
-      if (tagStack.length === 0 || tagStack.pop() !== tagName) {
-        return false; // Mismatched or unexpected closing tag
-      }
-    } else if (!fullTag.endsWith('/>')) {
-      // Opening tag (not self-closing)
-      tagStack.push(tagName);
-    }
-  }
-
-  return tagStack.length === 0; // All tags should be matched
-}
-
-/**
- * Parses an XML string into a JavaScript object using fast-xml-parser.
- * @param xmlString The XML string to parse
- * @param options Optional parsing options to override defaults
- * @returns Parsed JavaScript object
- * @throws Error if parsing fails
- */
-function parseXML(
-  xmlString: string,
-  options?: Partial<X2jOptions>,
-): ParsedXMLObject {
-  try {
-    const parser = new XMLParser(options);
-    const result = parser.parse(xmlString);
-    return result;
-  } catch (error) {
-    throw new Error(
-      `XML parsing failed: ${
-        error instanceof Error ? error.message : 'Unknown error'
-      }`,
-    );
-  }
-}
-
-/**
- * Simplifies the XML structure by handling text nodes and attributes
- */
-function simplifyXMLStructure(obj: Record<string, any>): XMLValue {
-  if (typeof obj !== 'object' || obj === null) {
-    // Convert undefined to null to match XMLValue type
-    return obj ?? null;
-  }
-
-  if (Array.isArray(obj)) {
-    // Handle nested arrays from the parser
-    const processedArray = obj.map((item): XMLValue => {
-      if (item === undefined || item === null) {
-        return null;
-      }
-      if (typeof item === 'object') {
-        return simplifyXMLStructure(item);
-      }
-      // For primitives (string, number, boolean), return as-is
-      return item as string | number | boolean;
-    });
-    const result =
-      processedArray.length === 1 ? processedArray[0] : processedArray;
-    return result ?? null; // Ensure we never return undefined
-  }
-
-  const result: ParsedXMLObject = {};
-
-  // First, process non-attribute properties and collect text nodes
-  const texts: string[] = [];
-  for (const [key, value] of Object.entries(obj)) {
-    if (key === '#text') {
-      // Keep text nodes as separate entries
-      const stringValue = Array.isArray(value)
-        ? value.map((v) => (v === undefined || v === null ? '' : String(v)))
-        : value === undefined || value === null
-          ? ''
-          : String(value);
-
-      if (Array.isArray(stringValue)) {
-        texts.push(...stringValue);
-      } else {
-        texts.push(stringValue);
-      }
-    } else if (!key.startsWith('@_')) {
-      const processed = simplifyXMLStructure(value);
-      const validValue = processed ?? null; // Convert undefined to null
-      result[key] = validValue;
-    }
-  }
-
-  // Then, add attributes (keep @_ prefix)
-  for (const [key, value] of Object.entries(obj)) {
-    if (key.startsWith('@_')) {
-      const validValue = value ?? null;
-      result[key] = validValue;
-    }
-  }
-
-  // Handle text content
-  if (texts.length > 0) {
-    if (Object.keys(result).length === 0) {
-      // If this is a leaf node with only text content, return the text
-      const textResult = texts.length === 1 ? texts[0] : texts;
-      return textResult as string;
-    }
-    // Otherwise, add text as an array property
-    result['#text'] = texts as string[];
-  }
-
-  return result as ParsedXMLObject;
 }
 
 export type { ParsedXMLObject, XMLValue, ExtractionError };

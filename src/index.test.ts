@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { extractXMLObjects } from './xml-extractor.js';
-import type { ParsedXMLObject } from './xml-extractor.js';
+import { extractXMLObjects } from './index.js';
+import type { ParsedXMLObject } from './index.js';
 
 describe('XML Extractor', () => {
   // Basic functionality tests
