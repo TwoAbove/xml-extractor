@@ -1,6 +1,6 @@
 {
   "name": "xml-extractor",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "A lightweight library to extract and parse all XML blocks from a string",
   "type": "module",
   "main": "dist/index.js",
