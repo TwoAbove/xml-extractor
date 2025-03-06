@@ -1,6 +1,6 @@
 # XML Extractor: Easily Retrieve XML from AI Conversations
 
-AI language models *mostly* generate valid XML, but they often clutter it with casual text, markdown, or random tags. XML Extractor isolates clean XML from conversational noise, ready to use.
+AI language models _mostly_ generate valid XML, but they often clutter it with casual text, markdown, or random tags. XML Extractor isolates clean XML from conversational noise, ready to use.
 
 ## What Does XML Extractor Do?
 
@@ -44,10 +44,7 @@ try {
 Output:
 
 ```json
-[
-  { "person": { "name": "John" } },
-  { "book": { "title": "1984" } }
-]
+[{ "person": { "name": "John" } }, { "book": { "title": "1984" } }]
 ```
 
 Easy and straightforward. Don’t forget to validate the output with your favorite schema validator!
